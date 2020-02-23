@@ -7,11 +7,12 @@ credentials_file="$prefix/credentials.txt"
 [ ! -f $credentials_file ] && { echo GitHub credentials expected in $credentials_file!; exit 1; }
 pregen_file="$prefix/pregen.txt"
 secrets_file="$prefix/secrets.txt"
+collector_file="$prefix/collector.txt"
 subkey_cmd="subkey -n kusama vanity --number 1 ksma"
 
 argv=1
 for cred in $(cat $credentials_file); do
-    if [ -s $pregen_file -a -z "$address" ]; then
+    if [ -s $pregen_file ]; then
         address=$(head -n 1 $pregen_file)
         tail -n +2 $pregen_file > $pregen_file.tmp && mv $pregen_file.tmp $pregen_file
     fi
@@ -35,9 +36,10 @@ done
 
 which at &> /dev/null && echo $0 $1 | at tomorrow + 1 minute
 
-if which npm &> /dev/null && [ "$1" ]; then # invoke transfer.js
+if which npm &> /dev/null && [ -s $collector_file ]; then # invoke transfer.js
+    address=$(head -n 1 $collector_file)
     pushd util
     [ package.json -nt node_modules ] && { npm install; touch node_modules; }
-    ./transfer.js $1 $secrets_file && rm $secrets_file
+    ./transfer.js $address $secrets_file && rm $secrets_file
     popd
 fi

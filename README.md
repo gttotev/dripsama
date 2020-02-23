@@ -7,7 +7,7 @@ Automatically request KSMA from faucet.
 Store GitHub credentials one per line in `~/.dripsama/credentials.txt`
 in `<username>:<token>` format. Be sure to give `public_repo` access to token.
 
-`./getdrip.sh [COLLECTOR_ADDR]` for an optional address where to send all drips.
+`./getdrip.sh`
 
 Can read pregenerated addresses from `~/.dripsama/pregen.txt`, one per line.
 
@@ -17,8 +17,8 @@ If no addresses are provided, invokes `subkey` to find vanity address containing
 
 If `at` is installed, `getdrip.sh` schedules itself to run again in about 24 hours.
 
-If `COLLECTOR_ADDR` is specified and Node.js is installed, will send all earned
-KSMA, minus fees, to that address.
+If Node.js is installed and `~/.dripsama/collector.txt` contains an address, will
+send all earned KSMA, minus fees, to that address.
 
 ## Utils
 
