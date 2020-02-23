@@ -1,0 +1,28 @@
+{
+  "name": "dripsama-transfer",
+  "version": "1.0.0",
+  "description": "Empty KSMA accounts to collector",
+  "main": "transfer.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gttotev/dripsama.git"
+  },
+  "keywords": [
+    "kusama",
+    "faucet",
+    "polkadot",
+    "subkey"
+  ],
+  "author": "gttotev",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gttotev/dripsama/issues"
+  },
+  "homepage": "https://github.com/gttotev/dripsama#readme",
+  "dependencies": {
+    "@polkadot/api": "^1.3.1"
+  }
+}
