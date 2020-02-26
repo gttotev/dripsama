@@ -25,6 +25,9 @@ send all earned KSMA, minus fees, to that address.
 * `util/install-subkey.sh`: installs `rust` and `subkey` if not already in `PATH`.
 * `util/transfer.js`: usage: `./tranfer.js <addr> <key_file>`.
   Transfers all KSMA, minus fees, from accounts in `key_file` to given address.
+  Accounts may be specified in raw seed format, or as encrypted JSON. In the
+  latter case, the password for decryption must be given, separated by a space on
+  the same line as the stringified JSON.
 
 ## References
 
