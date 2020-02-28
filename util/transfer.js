@@ -5,13 +5,24 @@ if (process.argv.length < 4) {
 }
 
 const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api');
+const readline = require('readline'), fs = require('fs');
 
 const KUSAMA_ENDPOINT = 'wss://kusama-rpc.polkadot.io/';
-const TRANSFER_FEE = 2e10;
-//const TRANSFER_TIMEOUT_MS = 10000;
-const TRANSFER_TIMEOUT_MS = 1000;
+const ONE_KSMA = 1e12;
+const TRANSFER_FEE = 0.02 * ONE_KSMA;
+const TRANSFER_TIMEOUT_MS = 5000;
 const COLLECTOR_ADDR = process.argv[2];
 const KEY_FILE = process.argv[3];
+
+const now = _ => new Date().toISOString();
+const readLines = (file) => new Promise((resolve, reject) => {
+    const rl = readline.createInterface({
+        input: fs.createReadStream(file).on('error', reject)
+    });
+    var buffer = [];
+    rl.on('line', l => buffer.push(l));
+    rl.on('close', _ => resolve(buffer));
+});
 
 async function main() {
     // Initialise the provider to connect to the local node
@@ -23,7 +34,11 @@ async function main() {
     const transferAll = async function(fromPair, toAddress) {
         let amount = parseInt(await api.query.balances.freeBalance(fromPair.address)) - TRANSFER_FEE;
         if (amount <= 0) throw new Error('Insufficient funds!');
-        return api.tx.balances.transfer(toAddress, amount).signAndSend(fromPair);
+        return {
+            txHash: await api.tx.balances.transfer(toAddress, amount).signAndSend(fromPair),
+            amount: amount,
+            now: now()
+        };
     }
 
     // Retrieve the chain & node information information via rpc calls
@@ -32,33 +47,37 @@ async function main() {
         api.rpc.system.name(),
         api.rpc.system.version()
     ]);
-    console.log(`You are connected to chain ${chain} using ${nodeName} v${nodeVersion}`);
+    console.log(`${now()} Connected to chain ${chain} using ${nodeName} v${nodeVersion}`);
 
     let timeout = TRANSFER_TIMEOUT_MS;
-    const secrets = require('fs').readFileSync(KEY_FILE, 'utf8').split('\n');
-    for (const addr of secrets) {
-        if (addr.length < 64) continue;
+    for (const addr of await readLines(KEY_FILE)) {
         try {
             let pair = null;
             if (addr.startsWith('{')) {
                 const tok = addr.split(' ');
                 pair = keyring.addFromJson(JSON.parse(tok[0]));
                 pair.decodePkcs8(tok[1]);
-            } else pair = keyring.addFromUri(addr);
+            } else if (addr.startsWith('0x')) {
+                pair = keyring.addFromUri(addr);
+            } else {
+                throw new Error('Invalid secret type!');
+            }
             setTimeout(() => {
                 transferAll(pair, COLLECTOR_ADDR)
-                    .then(txHash => console.log(`${pair.address}: Submitted tx ${txHash.toHuman()}`))
-                    .catch(err => console.error(`${pair.address}: Error processing tx:`, err.message));
+                    .then(res => console.log(`${res.now} tx ${res.txHash.toHuman()}`
+                        + ` :: ${addr} --> ${COLLECTOR_ADDR} KSMA ${res.amount / ONE_KSMA}`))
+                    .catch(err => console.error(`${now()} Error processing tx for ${addr}:`,
+                        err.message));
             }, timeout);
             timeout += TRANSFER_TIMEOUT_MS;
         } catch (err) {
-            console.error(`${addr}: Error creating keypair:`, err.message);
+            console.error(`${now()} Error creating keypair for ${addr}:`, err.message);
         }
     }
     setTimeout(() => process.exit(0), timeout);
 }
 
 main().catch(err => {
-    console.error('Error from main!', err);
+    console.error('Error from main!\n', err);
     process.exit(100);
 });

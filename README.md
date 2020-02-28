@@ -18,7 +18,9 @@ If no addresses are provided, invokes `subkey` to find vanity address containing
 If `at` is installed, `getdrip.sh` schedules itself to run again in about 24 hours.
 
 If Node.js is installed and `~/.dripsama/collector.txt` contains an address, will
-send all earned KSMA, minus fees, to that address.
+send all earned KSMA, minus fees, to that address. These transactions are logged
+in `~/.dripsama/transfer_txns.txt`. Private keys are migrated to
+`~./dripsama/secrets.txt.old`.
 
 ## Utils
 

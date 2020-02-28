@@ -8,6 +8,7 @@ credentials_file="$prefix/credentials.txt"
 pregen_file="$prefix/pregen.txt"
 secrets_file="$prefix/secrets.txt"
 collector_file="$prefix/collector.txt"
+txns_file="$prefix/transfer_txns.txt"
 subkey_cmd="subkey -n kusama vanity --number 1 ksma"
 
 for cred in $(cat $credentials_file); do
@@ -34,11 +35,11 @@ done
 
 which at &> /dev/null && echo $BASH_SOURCE | at tomorrow + 1 minute
 
-if which npm &> /dev/null && [ -s $collector_file ]; then # invoke transfer.js
+if which npm &> /dev/null && [ -s $collector_file -a -s $secrets_file ]; then # invoke transfer.js
     address=$(head -n 1 $collector_file)
     pushd "${BASH_SOURCE%/*}/util"
     [ package.json -nt node_modules ] && { npm install; touch node_modules; }
-    ./transfer.js $address $secrets_file 2>&1 | tee -a "$prefix/transfer_txns.txt"
-    [ $PIPESTATUS -eq 0 ] && rm $secrets_file
+    ./transfer.js $address $secrets_file 2>&1 | tee -a $txns_file
+    [ $PIPESTATUS -eq 0 ] && cat $secrets_file >> "$secrets_file.old" && rm $secrets_file
     popd
 fi
