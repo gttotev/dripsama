@@ -9,8 +9,8 @@ const readline = require('readline'), fs = require('fs');
 
 const KUSAMA_ENDPOINT = 'wss://kusama-rpc.polkadot.io/';
 const ONE_KSMA = 1e12;
-const TRANSFER_FEE = 0.02 * ONE_KSMA;
-const TRANSFER_TIMEOUT_MS = 5000;
+const TRANSFER_FEE = parseFloat(process.env.XFER_FEE || 0.02) * ONE_KSMA;
+const TRANSFER_TIMEOUT_MS = parseInt(process.env.XFER_TIMEOUT || 5) * 1000;
 const COLLECTOR_ADDR = process.argv[2];
 const KEY_FILE = process.argv[3];
 

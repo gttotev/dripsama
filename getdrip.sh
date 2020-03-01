@@ -41,7 +41,7 @@ if which npm &> /dev/null && [ -s $collector_file -a -s $secrets_file ]; then # 
     address=$(head -n 1 $collector_file)
     pushd "${BASH_SOURCE%/*}/util"
     [ package.json -nt node_modules ] && { npm install; touch node_modules; }
-    ./transfer.js $address $secrets_file 2>&1 | tee -a $txns_file
+    XFER_TIMEOUT=30 ./transfer.js $address $secrets_file 2>&1 | tee -a $txns_file
     [ $PIPESTATUS -eq 0 ] && cat $secrets_file >> "$secrets_file.old" && rm $secrets_file
     popd
 fi
