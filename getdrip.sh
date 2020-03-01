@@ -8,6 +8,7 @@ credentials_file="$prefix/credentials.txt"
 pregen_file="$prefix/pregen.txt"
 secrets_file="$prefix/secrets.txt"
 collector_file="$prefix/collector.txt"
+at_file="$prefix/atno.txt"
 txns_file="$prefix/transfer_txns.txt"
 subkey_cmd="subkey -n kusama vanity --number 1 ksma"
 
@@ -31,7 +32,10 @@ for cred in $(cat $credentials_file); do
     [ $? -ne 0 ] && echo $address >> $pregen_file
 done
 
-which at &> /dev/null && echo $BASH_SOURCE | at tomorrow + 1 minute
+if which at &> /dev/null; then # schedule for tomorrow
+    [ -s $at_file ] && atrm $(head -n 1 $at_file) &> /dev/null
+    echo $BASH_SOURCE | at 'tomorrow + 1 minute' 2>&1 | tail -n 1 | awk '{print $2}' > $at_file
+fi
 
 if which npm &> /dev/null && [ -s $collector_file -a -s $secrets_file ]; then # invoke transfer.js
     address=$(head -n 1 $collector_file)
