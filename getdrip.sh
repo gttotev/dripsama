@@ -15,9 +15,7 @@ for cred in $(cat $credentials_file); do
     if [ -s $pregen_file ]; then
         address=$(head -n 1 $pregen_file)
         tail -n +2 $pregen_file > $pregen_file.tmp && mv $pregen_file.tmp $pregen_file
-    fi
-
-    if [ -z "$address" ]; then
+    else
         tmp_file=`mktemp`
         which subkey &> /dev/null || { echo "Install subkey (and put on PATH)!"; exit 1; }
         $subkey_cmd | tail -n 4 > $tmp_file
