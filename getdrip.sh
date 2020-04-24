@@ -17,8 +17,8 @@ for cred in $(cat $credentials_file); do
         address=$(head -n 1 $pregen_file)
         tail -n +2 $pregen_file > $pregen_file.tmp && mv $pregen_file.tmp $pregen_file
     else
-        tmp_file=`mktemp`
         which subkey &> /dev/null || { echo "Install subkey (and put on PATH)!"; exit 1; }
+        tmp_file=`mktemp`
         $subkey_cmd | tail -n 4 > $tmp_file
 
         address=$(grep 'SS58 Address' $tmp_file | sed 's/^.*:\s*//')
@@ -40,7 +40,7 @@ fi
 if which npm &> /dev/null && [ -s $collector_file -a -s $secrets_file ]; then # invoke transfer.js
     address=$(head -n 1 $collector_file)
     pushd "${BASH_SOURCE%/*}/util"
-    [ package.json -nt node_modules ] && { npm install; touch node_modules; }
+    [ package.json -nt node_modules ] && { rm -rf node_modules; npm install; }
     XFER_TIMEOUT=30 ./transfer.js $address $secrets_file 2>&1 | tee -a $txns_file
     [ $PIPESTATUS -eq 0 ] && cat $secrets_file >> "$secrets_file.old" && rm $secrets_file
     popd

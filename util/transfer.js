@@ -9,7 +9,7 @@ const readline = require('readline'), fs = require('fs');
 
 const KUSAMA_ENDPOINT = 'wss://kusama-rpc.polkadot.io/';
 const ONE_KSMA = 1e12;
-const TRANSFER_FEE = parseFloat(process.env.XFER_FEE || 0.02) * ONE_KSMA;
+const TRANSFER_FEE = parseFloat(process.env.XFER_FEE || 0.01) * ONE_KSMA;
 const TRANSFER_TIMEOUT_MS = parseInt(process.env.XFER_TIMEOUT || 5) * 1000;
 const COLLECTOR_ADDR = process.argv[2];
 const KEY_FILE = process.argv[3];
@@ -32,14 +32,15 @@ async function main() {
     const keyring = new Keyring({ type: 'sr25519' });
 
     const transferAll = async function(fromPair, toAddress) {
-        let amount = parseInt(await api.query.balances.freeBalance(fromPair.address)) - TRANSFER_FEE;
+        let accQuery = await api.query.system.account(fromPair.address);
+        let amount = parseInt(accQuery.data.free) - TRANSFER_FEE;
         if (amount <= 0) throw new Error('Insufficient funds!');
         return {
             txHash: await api.tx.balances.transfer(toAddress, amount).signAndSend(fromPair),
             amount: amount,
             now: now()
         };
-    }
+    };
 
     // Retrieve the chain & node information information via rpc calls
     const [chain, nodeName, nodeVersion] = await Promise.all([
